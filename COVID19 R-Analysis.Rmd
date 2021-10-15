@@ -1,0 +1,48 @@
+---
+title: "COVID19 Data Analysis"
+output: html_notebook
+---
+The data contains COVID-19 data 
+Questions to be tackled
+1. Do older people are more likely to die compared to younger people?
+2. Are females or males more susceptible to die from COVID than the other gender?
+3. 
+Importing libraries and dataset
+
+```{r}
+rm(list=ls())
+library(Hmisc)
+data <- read.csv("COVID19_line_list_data.csv")
+describe(data)
+```
+
+Processing:
+The death columns contains either 0 or 1 or the date of patient's death so we want to only show 0s and 1s.
+```{r}
+data$death_dummy <- as.integer(data$death != 0)
+sum(data$death_dummy) / nrow(data)
+```
+Analysis:
+Are older people more likely to die compared to younger people?
+```{r}
+alive <- subset(data, death_dummy==0)
+dead <- subset(data, death_dummy==1)
+mean(dead$age, na.rm = T)
+mean(alive$age, na.rm = T)
+```
+Using means, it actually shows that older people are more likely to die with COVID. We would like to test this further using a t-test.
+```{r}
+t.test(dead$age, alive$age, alternative="two.sided", conf.level = 0.95)
+```
+The t-test proves that with a 95% certainty that the age difference between people who have died and who have not is between 16 to 24 years. With p value less than zero we can reject the null hypothesis there is no difference beween the ages and that older people are indeed are more likely to die with COVID than those are not.
+
+
+Are females or males more susceptible to die from COVID than the other gender?
+```{r}
+men = subset(data, gender == "male")
+women = subset(data, gender == "female")
+mean(men$death_dummy, na.rm=TRUE)
+mean(women$death_dummy, na.rm=TRUE)
+t.test(men$death_dummy, women$death_dummy, alternative="two.sided", conf.level = 0.95)
+```
+We can see that men has an average death rate of 8.4% compared to 3.7% female average death rate.
